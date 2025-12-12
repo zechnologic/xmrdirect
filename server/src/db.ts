@@ -298,8 +298,10 @@ export interface MultisigSession {
   service_address?: string;
   service_prepared_hex?: string;
   service_made_hex?: string;
+  user_a_id?: string;
   user_a_prepared_hex?: string;
   user_a_made_hex?: string;
+  user_b_id?: string;
   user_b_prepared_hex?: string;
   user_b_made_hex?: string;
   exchange_round: number;

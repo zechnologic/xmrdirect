@@ -12,6 +12,7 @@ import {
   MultisigSession,
 } from "../db.js";
 import { authenticateToken, AuthRequest } from "../middleware/auth.js";
+import { MONERO_CONFIG } from "../config/monero.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +20,7 @@ const __dirname = path.dirname(__filename);
 const router = express.Router();
 router.use(express.json());
 
-const DAEMON_URI = "http://node.sethforprivacy.com:18089";
+const DAEMON_URI = MONERO_CONFIG.nodeUri;
 const WALLET_PASSWORD = "supersecretpassword123";
 
 // Helper function to initialize a multisig session with service wallet
@@ -52,7 +53,7 @@ export async function initializeMultisigSession(userId: string): Promise<{
   let tempWallet = await moneroTs.createWalletFull({
     path: serviceWalletPath,
     password: WALLET_PASSWORD,
-    networkType: moneroTs.MoneroNetworkType.MAINNET,
+    networkType: MONERO_CONFIG.networkType,
   });
 
   // Get the seed before closing
@@ -72,7 +73,7 @@ export async function initializeMultisigSession(userId: string): Promise<{
   const serviceWallet = await moneroTs.createWalletFull({
     path: serviceWalletPath,
     password: WALLET_PASSWORD,
-    networkType: moneroTs.MoneroNetworkType.MAINNET,
+    networkType: MONERO_CONFIG.networkType,
     seed: walletSeed,
     restoreHeight: creationHeight,
   });
@@ -142,11 +143,17 @@ router.post(
         });
       }
 
-      // Store the prepared hex
+      // Store the prepared hex and track which user is which
       if (participantId === "user_a") {
-        updateSession(sessionId, { user_a_prepared_hex: preparedHex });
+        updateSession(sessionId, {
+          user_a_prepared_hex: preparedHex,
+          user_a_id: req.userId
+        });
       } else if (participantId === "user_b") {
-        updateSession(sessionId, { user_b_prepared_hex: preparedHex });
+        updateSession(sessionId, {
+          user_b_prepared_hex: preparedHex,
+          user_b_id: req.userId
+        });
       } else {
         return res
           .status(400)
@@ -215,7 +222,10 @@ router.post(
         const serviceWallet = await moneroTs.openWalletFull({
           path: session.service_wallet_path!,
           password: WALLET_PASSWORD,
-          networkType: moneroTs.MoneroNetworkType.MAINNET,
+          networkType: MONERO_CONFIG.networkType,
+          server: {
+            uri: DAEMON_URI,
+          },
         });
 
         // Collect peer hexes (user_a and user_b)
@@ -269,7 +279,10 @@ router.post(
           const serviceWallet = await moneroTs.openWalletFull({
             path: updatedSession.service_wallet_path!,
             password: WALLET_PASSWORD,
-            networkType: moneroTs.MoneroNetworkType.MAINNET,
+            networkType: MONERO_CONFIG.networkType,
+            server: {
+              uri: DAEMON_URI,
+            },
           });
 
           const peerHexes = [
@@ -359,7 +372,10 @@ router.post(
         const serviceWallet = await moneroTs.openWalletFull({
           path: session.service_wallet_path!,
           password: WALLET_PASSWORD,
-          networkType: moneroTs.MoneroNetworkType.MAINNET,
+          networkType: MONERO_CONFIG.networkType,
+          server: {
+            uri: DAEMON_URI,
+          },
         });
 
         // Determine which hexes to use based on current round
@@ -430,7 +446,10 @@ router.post(
           const serviceWallet = await moneroTs.openWalletFull({
             path: updatedSession.service_wallet_path!,
             password: WALLET_PASSWORD,
-            networkType: moneroTs.MoneroNetworkType.MAINNET,
+            networkType: MONERO_CONFIG.networkType,
+            server: {
+              uri: DAEMON_URI,
+            },
           });
 
           let hexesToExchange: string[];
@@ -654,7 +673,7 @@ router.post(
       const serviceWallet = await moneroTs.openWalletFull({
         path: session.service_wallet_path!,
         password: WALLET_PASSWORD,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
+        networkType: MONERO_CONFIG.networkType,
         server: {
           uri: DAEMON_URI,
         },
@@ -730,7 +749,10 @@ router.post(
         const serviceWallet = await moneroTs.openWalletFull({
           path: session.service_wallet_path!,
           password: WALLET_PASSWORD,
-          networkType: moneroTs.MoneroNetworkType.MAINNET,
+          networkType: MONERO_CONFIG.networkType,
+          server: {
+            uri: DAEMON_URI,
+          },
         });
 
         // Import the multisig info from other participants
@@ -801,7 +823,7 @@ router.post(
       const serviceWallet = await moneroTs.openWalletFull({
         path: session.service_wallet_path!,
         password: WALLET_PASSWORD,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
+        networkType: MONERO_CONFIG.networkType,
         server: {
           uri: DAEMON_URI,
         },
@@ -858,7 +880,7 @@ router.get(
       const serviceWallet = await moneroTs.openWalletFull({
         path: session.service_wallet_path!,
         password: WALLET_PASSWORD,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
+        networkType: MONERO_CONFIG.networkType,
         server: {
           uri: DAEMON_URI,
         },
@@ -952,7 +974,10 @@ router.post(
       const serviceWallet = await moneroTs.openWalletFull({
         path: session.service_wallet_path!,
         password: WALLET_PASSWORD,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
+        networkType: MONERO_CONFIG.networkType,
+        server: {
+          uri: DAEMON_URI,
+        },
       });
 
       console.log(`[Admin] Service wallet opened, checking multisig status...`);

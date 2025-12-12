@@ -18,7 +18,23 @@ XMR Direct enables direct trading between users without custodial control of fun
 
 **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS + React Router
 **Backend:** Express + TypeScript + monero-ts + SQLite (better-sqlite3)
-**Monero Node:** http://node.sethforprivacy.com:18089 (MAINNET)
+**Network:** Currently configured for STAGENET testing
+
+### Network Configuration
+
+Switch between STAGENET and MAINNET by setting the `MONERO_NETWORK` environment variable:
+
+```bash
+# .env (server)
+MONERO_NETWORK=stagenet  # or mainnet
+
+# client/.env
+VITE_MONERO_NETWORK=stagenet  # or mainnet
+```
+
+**Network Settings:**
+- **STAGENET**: Uses `https://stagenet.xmr.ditatompel.com`, requires 2 confirmations
+- **MAINNET**: Uses `http://node.sethforprivacy.com:18089`, requires 10 confirmations
 
 ## Multisig Architecture
 

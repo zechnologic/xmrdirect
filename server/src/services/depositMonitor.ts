@@ -2,11 +2,12 @@ import moneroTs from "monero-ts";
 import { getSession, updateTrade, getTradeById } from "../db.js";
 import db from "../db.js";
 import notificationService from "./notifications.js";
+import { MONERO_CONFIG } from "../config/monero.js";
 
-const DAEMON_URI = "http://node.sethforprivacy.com:18089";
+const DAEMON_URI = MONERO_CONFIG.nodeUri;
 const WALLET_PASSWORD = "supersecretpassword123";
 const POLL_INTERVAL = 60000; // Check every 60 seconds
-const CONFIRMATION_BLOCKS = 10; // Number of confirmations required
+const CONFIRMATION_BLOCKS = MONERO_CONFIG.confirmations;
 
 interface MonitoredTrade {
   id: string;
@@ -37,7 +38,7 @@ async function checkWalletDeposits(
     serviceWallet = await moneroTs.openWalletFull({
       path: session.service_wallet_path!,
       password: WALLET_PASSWORD,
-      networkType: moneroTs.MoneroNetworkType.MAINNET,
+      networkType: MONERO_CONFIG.networkType,
       server: {
         uri: DAEMON_URI,
       },

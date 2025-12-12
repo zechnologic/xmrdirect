@@ -8,6 +8,7 @@
  */
 
 import moneroTs from "monero-ts";
+import { MONERO_CONFIG } from "../config/monero.js";
 
 export interface WalletInfo {
   address: string;
@@ -29,7 +30,7 @@ export interface MultisigInfo {
 export class BrowserMoneroWallet {
   private wallet: any = null;
   private isInitialized = false;
-  private nodeUri = "http://node.sethforprivacy.com:18089"; // May have CORS issues
+  private nodeUri = MONERO_CONFIG.nodeUri;
 
   /**
    * Initialize the wallet (loads WebAssembly)
@@ -80,7 +81,7 @@ export class BrowserMoneroWallet {
       // Note: restoreHeight cannot be used when creating a NEW wallet, only when restoring
       this.wallet = await moneroTs.createWalletFull({
         password: password,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
+        networkType: MONERO_CONFIG.networkType,
         server: {
           uri: this.nodeUri,
         },
@@ -134,7 +135,7 @@ export class BrowserMoneroWallet {
 
       this.wallet = await moneroTs.createWalletFull({
         password: password,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
+        networkType: MONERO_CONFIG.networkType,
         seed: seed,
         restoreHeight: effectiveRestoreHeight,
         server: {

@@ -17,6 +17,7 @@ import { authenticateToken, AuthRequest } from "../middleware/auth.js";
 import { initializeMultisigSession } from "./multisig.js";
 import { checkTradeDeposit } from "../services/depositMonitor.js";
 import notificationService from "../services/notifications.js";
+import { MONERO_CONFIG } from "../config/monero.js";
 
 const router = express.Router();
 router.use(express.json());
@@ -161,6 +162,10 @@ router.get("/trades/:id", authenticateToken, async (req: AuthRequest, res: Respo
     if (trade.multisig_session_id) {
       const session = getSession(trade.multisig_session_id);
       if (session) {
+        // Map user_a/user_b to buyer/seller based on actual user IDs
+        const buyerIsUserA = session.user_a_id === trade.buyer_id;
+        const buyerIsUserB = session.user_b_id === trade.buyer_id;
+
         multisigSession = {
           id: session.id,
           status: session.status,
@@ -170,18 +175,18 @@ router.get("/trades/:id", authenticateToken, async (req: AuthRequest, res: Respo
           exchangeRound: session.exchange_round,
           hasPrepared: {
             service: !!session.service_prepared_hex,
-            buyer: !!session.user_a_prepared_hex,
-            seller: !!session.user_b_prepared_hex,
+            buyer: buyerIsUserA ? !!session.user_a_prepared_hex : buyerIsUserB ? !!session.user_b_prepared_hex : false,
+            seller: buyerIsUserA ? !!session.user_b_prepared_hex : buyerIsUserB ? !!session.user_a_prepared_hex : false,
           },
           hasMade: {
             service: !!session.service_made_hex,
-            buyer: !!session.user_a_made_hex,
-            seller: !!session.user_b_made_hex,
+            buyer: buyerIsUserA ? !!session.user_a_made_hex : buyerIsUserB ? !!session.user_b_made_hex : false,
+            seller: buyerIsUserA ? !!session.user_b_made_hex : buyerIsUserB ? !!session.user_a_made_hex : false,
           },
           hasExchanged: {
             service: !!session.service_exchange_hexes,
-            buyer: !!session.user_a_exchange_hexes,
-            seller: !!session.user_b_exchange_hexes,
+            buyer: buyerIsUserA ? !!session.user_a_exchange_hexes : buyerIsUserB ? !!session.user_b_exchange_hexes : false,
+            seller: buyerIsUserA ? !!session.user_b_exchange_hexes : buyerIsUserB ? !!session.user_a_exchange_hexes : false,
           },
         };
       }
@@ -532,13 +537,12 @@ router.post("/trades/:id/initiate-release", authenticateToken, async (req: AuthR
 
     // Open service wallet and create transaction
     const WALLET_PASSWORD = "supersecretpassword123";
-    const DAEMON_URI = "http://node.sethforprivacy.com:18089";
     const serviceWallet = await moneroTs.openWalletFull({
       path: session.service_wallet_path!,
       password: WALLET_PASSWORD,
-      networkType: moneroTs.MoneroNetworkType.MAINNET,
+      networkType: MONERO_CONFIG.networkType,
       server: {
-        uri: DAEMON_URI,
+        uri: MONERO_CONFIG.nodeUri,
       },
     });
 
@@ -623,13 +627,12 @@ router.post("/trades/:id/finalize-release", authenticateToken, async (req: AuthR
 
     // Open service wallet
     const WALLET_PASSWORD = "supersecretpassword123";
-    const DAEMON_URI = "http://node.sethforprivacy.com:18089";
     const serviceWallet = await moneroTs.openWalletFull({
       path: session.service_wallet_path!,
       password: WALLET_PASSWORD,
-      networkType: moneroTs.MoneroNetworkType.MAINNET,
+      networkType: MONERO_CONFIG.networkType,
       server: {
-        uri: DAEMON_URI,
+        uri: MONERO_CONFIG.nodeUri,
       },
     });
 

@@ -16,6 +16,7 @@ import { authenticateToken, AuthRequest } from "../middleware/auth.js";
 import { isAdmin } from "../middleware/admin.js";
 import db from "../db.js";
 import moneroTs from "monero-ts";
+import { MONERO_CONFIG } from "../config/monero.js";
 
 const router = express.Router();
 router.use(express.json());
@@ -177,7 +178,10 @@ router.post(
       const serviceWallet = await moneroTs.openWalletFull({
         path: session.service_wallet_path!,
         password: WALLET_PASSWORD,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
+        networkType: MONERO_CONFIG.networkType,
+        server: {
+          uri: MONERO_CONFIG.nodeUri,
+        },
       });
 
       // Sync wallet
