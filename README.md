@@ -38,12 +38,6 @@ Global trading with any payment method, any currency, any location.
 
 ## Market Position & Differentiation
 
-### Competition Landscape (2025)
-- **Haveno**: Main LocalMonero replacement, desktop-only, "not beginner-friendly"
-- **SecureSwap**: Launched June 2025, browser-based, 2-of-3 multisig, 1% fee
-- **Bisq**: Primarily Bitcoin, has XMR/BTC pairs
-- **Hodl Hodl**: XMR/BTC trading available
-
 ### How XMR Direct Differentiates
 1. **Lower Fees**: 0.5% vs SecureSwap's 1%
 2. **User Choice**: Convenience Mode OR Paranoid Mode (encrypted seed storage optional)

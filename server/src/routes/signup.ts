@@ -10,6 +10,12 @@ const SALT_ROUNDS = 10;
 
 router.post("/signup", async (req: Request, res: Response) => {
   try {
+    // Temporarily disable signups
+    return res.status(403).json({
+      success: false,
+      error: "Signup currently limited. Request access from maintainers.",
+    });
+
     const { username, password } = req.body;
 
     // Validation
