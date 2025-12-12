@@ -33,7 +33,7 @@ VITE_MONERO_NETWORK=stagenet  # or mainnet
 ```
 
 **Network Settings:**
-- **STAGENET**: Uses `https://stagenet.xmr.ditatompel.com`, requires 2 confirmations
+- **STAGENET**: Uses `http://node.monerodevs.org:38089`, requires 2 confirmations
 - **MAINNET**: Uses `http://node.sethforprivacy.com:18089`, requires 10 confirmations
 
 ## Multisig Architecture

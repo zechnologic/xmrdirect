@@ -18,10 +18,40 @@ interface MonitoredTrade {
 
 let monitorInterval: NodeJS.Timeout | null = null;
 
+// Mutex to prevent concurrent wallet access
+const walletLocks = new Map<string, Promise<any>>();
+
 /**
- * Checks a specific multisig wallet for deposits
+ * Checks a specific multisig wallet for deposits with mutex to prevent concurrent access
  */
 async function checkWalletDeposits(
+  sessionId: string,
+  expectedAmount: number
+): Promise<{ hasDeposit: boolean; isUnlocked: boolean; balance: bigint }> {
+  // Check if there's already an operation running for this wallet
+  if (walletLocks.has(sessionId)) {
+    console.log(`[DepositMonitor] Wallet ${sessionId} is already being checked, waiting...`);
+    await walletLocks.get(sessionId);
+    console.log(`[DepositMonitor] Previous operation completed, retrying check for ${sessionId}...`);
+  }
+
+  // Create a promise for this operation
+  const operationPromise = performWalletCheck(sessionId, expectedAmount);
+  walletLocks.set(sessionId, operationPromise);
+
+  try {
+    const result = await operationPromise;
+    return result;
+  } finally {
+    // Remove lock when done
+    walletLocks.delete(sessionId);
+  }
+}
+
+/**
+ * Performs the actual wallet check (internal function)
+ */
+async function performWalletCheck(
   sessionId: string,
   expectedAmount: number
 ): Promise<{ hasDeposit: boolean; isUnlocked: boolean; balance: bigint }> {
@@ -44,18 +74,67 @@ async function checkWalletDeposits(
       },
     });
 
-    console.log(`[DepositMonitor] Syncing wallet for session ${sessionId}...`);
-    console.log(`[DepositMonitor] NOTE: First sync may take 5+ minutes. Subsequent syncs will be much faster.`);
+    // Check wallet sync height BEFORE syncing
+    const syncHeight = await serviceWallet.getHeight();
+    const daemonHeight = await serviceWallet.getDaemonHeight();
+    console.log(`[DepositMonitor] Wallet height: ${syncHeight}, Daemon height: ${daemonHeight} (${daemonHeight - syncHeight} blocks behind)`);
 
-    // Sync with a longer timeout for first sync (can take several minutes)
-    // Subsequent syncs will be much faster since they only scan new blocks
-    const SYNC_TIMEOUT = 10 * 60 * 1000; // 10 minutes for first sync
-    await Promise.race([
-      serviceWallet.sync(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error(`Sync timeout after ${SYNC_TIMEOUT / 1000} seconds`)), SYNC_TIMEOUT)
-      )
-    ]);
+    // CRITICAL FIX: If wallet height is suspiciously low, recreate from seed
+    // Multisig transformations reset scan height to 1, and we can't fix it in place
+    if (syncHeight < 100 && session.creation_height && session.creation_height > 0) {
+      console.log(`[DepositMonitor] ⚠️  Wallet height (${syncHeight}) is suspiciously low!`);
+      console.log(`[DepositMonitor] 🔧 Auto-fixing: Recreating wallet from seed at height ${session.creation_height}...`);
+
+      // Get seed before closing
+      const walletSeed = await serviceWallet.getSeed();
+      await serviceWallet.close();
+      serviceWallet = null;
+
+      // Delete wallet files
+      const fs = await import("fs");
+      try {
+        fs.unlinkSync(session.service_wallet_path!);
+        fs.unlinkSync(session.service_wallet_path! + ".keys");
+      } catch (e) {
+        console.log(`[DepositMonitor] Wallet files already deleted`);
+      }
+
+      // Restore from seed with correct height
+      serviceWallet = await moneroTs.createWalletFull({
+        path: session.service_wallet_path!,
+        password: WALLET_PASSWORD,
+        networkType: MONERO_CONFIG.networkType,
+        seed: walletSeed,
+        restoreHeight: session.creation_height,
+        server: {
+          uri: DAEMON_URI,
+        },
+      });
+
+      const newHeight = await serviceWallet.getHeight();
+      console.log(`[DepositMonitor] ✓ Wallet recreated. New height: ${newHeight}`);
+    }
+
+    if (syncHeight >= daemonHeight) {
+      console.log(`[DepositMonitor] Wallet already synced, skipping sync`);
+    } else {
+      console.log(`[DepositMonitor] Syncing wallet for session ${sessionId}...`);
+
+      // Use shorter timeout for stagenet since we only scan ~10 blocks
+      const SYNC_TIMEOUT = MONERO_CONFIG.network === 'stagenet'
+        ? 30 * 1000  // 30 seconds for stagenet
+        : 5 * 60 * 1000;  // 5 minutes for mainnet
+
+      const syncStartTime = Date.now();
+      await Promise.race([
+        serviceWallet.sync(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Sync timeout after ${SYNC_TIMEOUT / 1000} seconds`)), SYNC_TIMEOUT)
+        )
+      ]);
+      const syncDuration = Date.now() - syncStartTime;
+      console.log(`[DepositMonitor] Sync completed in ${syncDuration}ms`);
+    }
 
     console.log(`[DepositMonitor] Getting balance for session ${sessionId}...`);
     const balance = await serviceWallet.getBalance();
@@ -64,6 +143,7 @@ async function checkWalletDeposits(
     console.log(`[DepositMonitor] Balance: ${balance}, Unlocked: ${unlockedBalance}`);
 
     await serviceWallet.close();
+    console.log(`[DepositMonitor] Wallet closed successfully`);
 
     const expectedAtomic = BigInt(Math.floor(expectedAmount * 1e12));
     const hasDeposit = balance >= expectedAtomic;
@@ -153,13 +233,15 @@ export function startDepositMonitor() {
     return;
   }
 
-  console.log(`[DepositMonitor] Starting deposit monitor (polling every ${POLL_INTERVAL}ms)`);
+  console.log(`[DepositMonitor] TEMPORARILY DISABLED for testing - use manual "Check Deposit Status" button`);
+  // TEMPORARILY DISABLED for testing wallet sync issues
+  // Uncomment below to re-enable background monitoring
 
-  // Run immediately
-  monitorDeposits();
-
-  // Then run on interval
-  monitorInterval = setInterval(monitorDeposits, POLL_INTERVAL);
+  // console.log(`[DepositMonitor] Starting deposit monitor (polling every ${POLL_INTERVAL}ms)`);
+  // // Run immediately
+  // monitorDeposits();
+  // // Then run on interval
+  // monitorInterval = setInterval(monitorDeposits, POLL_INTERVAL);
 }
 
 /**

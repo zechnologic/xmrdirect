@@ -17,7 +17,7 @@ export const MONERO_CONFIG = {
       : moneroTs.MoneroNetworkType.MAINNET,
   nodeUri:
     NETWORK === "stagenet"
-      ? "https://stagenet.xmr.ditatompel.com"
+      ? "http://node.monerodevs.org:38089"
       : "http://node.sethforprivacy.com:18089",
   confirmations: NETWORK === "stagenet" ? 2 : 10, // Lower confirmations for stagenet testing
 } as const;

@@ -739,7 +739,7 @@ function TradeDetail() {
                         disabled={checkingDeposit}
                         className="w-full px-4 py-2 bg-orange-600 text-white hover:bg-orange-700 transition-colors font-semibold disabled:opacity-50"
                       >
-                        {checkingDeposit ? "Syncing wallet... (may take several minutes on first check)" : "Check Deposit Status"}
+                        {checkingDeposit ? "Checking deposit status..." : "Check Deposit Status"}
                       </button>
                       {depositMessage && (
                         <div
