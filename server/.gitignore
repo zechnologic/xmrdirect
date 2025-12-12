@@ -1,0 +1,12 @@
+# Compiled output
+dist/
+
+# Monero wallets
+wallets/
+
+# Environment variables
+.env
+.env.local
+
+# Node modules
+node_modules/
