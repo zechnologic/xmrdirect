@@ -6,11 +6,12 @@
   "types": "server/dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cd client && npm install && npm run build",
+    "build:server": "tsc",
     "build:client": "cd client && npm run build",
     "clean": "rm -rf server/dist client/dist",
     "dev": "npm run clean && npm run build:client && npm run start",
-    "start": "tsc && node server/dist/index.js"
+    "start": "node server/dist/index.js"
   },
   "keywords": [],
   "author": "",
