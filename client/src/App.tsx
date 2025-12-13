@@ -4,6 +4,7 @@ import Home from "./page/Home.tsx";
 import Login from "./page/Login.tsx";
 import Signup from "./page/Signup.tsx";
 import HowItWorks from "./page/HowItWorks.tsx";
+import Privacy from "./page/Privacy.tsx";
 import Account from "./page/Account.tsx";
 import Offers from "./page/Offers.tsx";
 import Ad from "./page/Ad.tsx";
@@ -46,6 +47,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="/account" element={<Account />} />
         <Route path="/offers" element={<Offers />} />
         <Route path="/ad/:id" element={<Ad />} />
