@@ -75,44 +75,24 @@ async function performWalletCheck(
     });
 
     // Check wallet sync height BEFORE syncing
-    const syncHeight = await serviceWallet.getHeight();
+    let syncHeight = await serviceWallet.getHeight();
     const daemonHeight = await serviceWallet.getDaemonHeight();
     console.log(`[DepositMonitor] Wallet height: ${syncHeight}, Daemon height: ${daemonHeight} (${daemonHeight - syncHeight} blocks behind)`);
 
-    // CRITICAL FIX: If wallet height is suspiciously low, recreate from seed
-    // Multisig transformations reset scan height to 1, and we can't fix it in place
+    // CRITICAL FIX: If wallet height is suspiciously low, fix the restore height
+    // Multisig transformations reset scan height to 1
+    // We can't recreate multisig wallets from seed, so we set restore height and rescan
     if (syncHeight < 100 && session.creation_height && session.creation_height > 0) {
       console.log(`[DepositMonitor] ⚠️  Wallet height (${syncHeight}) is suspiciously low!`);
-      console.log(`[DepositMonitor] 🔧 Auto-fixing: Recreating wallet from seed at height ${session.creation_height}...`);
+      console.log(`[DepositMonitor] 🔧 Auto-fixing: Setting restore height to ${session.creation_height} and rescanning...`);
 
-      // Get seed before closing
-      const walletSeed = await serviceWallet.getSeed();
-      await serviceWallet.close();
-      serviceWallet = null;
+      // Set restore height, rescan, and sync
+      await serviceWallet.setRestoreHeight(session.creation_height);
+      await serviceWallet.rescanBlockchain();
+      await serviceWallet.sync();
 
-      // Delete wallet files
-      const fs = await import("fs");
-      try {
-        fs.unlinkSync(session.service_wallet_path!);
-        fs.unlinkSync(session.service_wallet_path! + ".keys");
-      } catch (e) {
-        console.log(`[DepositMonitor] Wallet files already deleted`);
-      }
-
-      // Restore from seed with correct height
-      serviceWallet = await moneroTs.createWalletFull({
-        path: session.service_wallet_path!,
-        password: WALLET_PASSWORD,
-        networkType: MONERO_CONFIG.networkType,
-        seed: walletSeed,
-        restoreHeight: session.creation_height,
-        server: {
-          uri: DAEMON_URI,
-        },
-      });
-
-      const newHeight = await serviceWallet.getHeight();
-      console.log(`[DepositMonitor] ✓ Wallet recreated. New height: ${newHeight}`);
+      syncHeight = await serviceWallet.getHeight();
+      console.log(`[DepositMonitor] ✓ Wallet rescan and sync complete. New height: ${syncHeight}`);
     }
 
     if (syncHeight >= daemonHeight) {

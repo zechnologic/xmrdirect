@@ -511,46 +511,33 @@ router.post(
             `Session ${sessionId}: Key exchange complete. Multisig is ready!`
           );
 
-          // CRITICAL: Recreate wallet with correct restore height
-          // Multisig transformations reset the scan height to 1, and setRestoreHeight() doesn't fix existing wallets
-          // We need to delete and restore from seed with the correct height
+          // CRITICAL: Fix wallet restore height after multisig transformations
+          // Multisig transformations reset the scan height to 1
+          // We can't recreate multisig wallets from seed, so instead we:
+          // 1. Set the restore height on the existing wallet
+          // 2. Force a rescan from that height
           try {
             const readySession = getSession(sessionId)!;
             if (readySession.service_wallet_path && readySession.creation_height) {
-              console.log(`Session ${sessionId}: Fixing wallet restore height (recreating from seed at height ${readySession.creation_height})...`);
+              console.log(`Session ${sessionId}: Fixing wallet restore height to ${readySession.creation_height}...`);
 
-              // Step 1: Open wallet and get seed
-              let wallet = await moneroTs.openWalletFull({
+              // Open the multisig wallet
+              const wallet = await moneroTs.openWalletFull({
                 path: readySession.service_wallet_path,
                 password: WALLET_PASSWORD,
                 networkType: MONERO_CONFIG.networkType,
                 server: { uri: DAEMON_URI },
               });
 
-              const walletSeed = await wallet.getSeed();
-              await wallet.close();
+              // Set restore height and trigger rescan
+              await wallet.setRestoreHeight(readySession.creation_height);
+              console.log(`Session ${sessionId}: Restore height set to ${readySession.creation_height}, rescanning and syncing...`);
 
-              // Step 2: Delete wallet files
-              const fs = await import("fs");
-              try {
-                fs.unlinkSync(readySession.service_wallet_path);
-                fs.unlinkSync(readySession.service_wallet_path + ".keys");
-              } catch (e) {
-                console.log(`Session ${sessionId}: Wallet files already deleted or don't exist`);
-              }
-
-              // Step 3: Restore from seed with correct restore height
-              wallet = await moneroTs.createWalletFull({
-                path: readySession.service_wallet_path,
-                password: WALLET_PASSWORD,
-                networkType: MONERO_CONFIG.networkType,
-                seed: walletSeed,
-                restoreHeight: readySession.creation_height,
-                server: { uri: DAEMON_URI },
-              });
+              await wallet.rescanBlockchain();
+              await wallet.sync();
 
               const newHeight = await wallet.getHeight();
-              console.log(`Session ${sessionId}: ✓ Wallet recreated with restore height ${readySession.creation_height}, current height: ${newHeight}`);
+              console.log(`Session ${sessionId}: ✓ Wallet rescan and sync complete. Height: ${newHeight}`);
 
               await wallet.close();
             }
