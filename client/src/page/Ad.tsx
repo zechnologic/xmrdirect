@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import Layout from "../components/Layout";
 import { formatPaymentMethod } from "../utils/formatPaymentMethod";
+import { API_BASE_URL } from "../config/api";
 
 interface Offer {
   id: string;
@@ -50,7 +51,7 @@ function Ad() {
 
   const fetchOffer = async (offerId: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/offers/${offerId}`);
+      const response = await fetch(`${API_BASE_URL}/offers/${offerId}`);
       const data = await response.json();
 
       if (data.success) {
@@ -80,7 +81,7 @@ function Ad() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3000/trades", {
+      const response = await fetch(`${API_BASE_URL}/trades`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

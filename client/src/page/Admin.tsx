@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import Layout from "../components/Layout";
 import { formatPaymentMethod } from "../utils/formatPaymentMethod";
+import { API_BASE_URL } from "../config/api";
 
 interface Trade {
   id: string;
@@ -60,7 +61,7 @@ export default function Admin() {
       const token = localStorage.getItem("token");
 
       // Fetch trades
-      const tradesResponse = await fetch("http://localhost:3000/admin/trades", {
+      const tradesResponse = await fetch(`${API_BASE_URL}/admin/trades`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -79,7 +80,7 @@ export default function Admin() {
       setTrades(tradesData.trades);
 
       // Fetch stats
-      const statsResponse = await fetch("http://localhost:3000/admin/stats", {
+      const statsResponse = await fetch(`${API_BASE_URL}/admin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -98,7 +99,7 @@ export default function Admin() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3000/admin/trades/${tradeId}`,
+        `${API_BASE_URL}/admin/trades/${tradeId}`,
         {
           method: "PUT",
           headers: {
@@ -147,7 +148,7 @@ export default function Admin() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3000/admin/trades/${tradeId}/release-escrow`,
+        `${API_BASE_URL}/admin/trades/${tradeId}/release-escrow`,
         {
           method: "POST",
           headers: {

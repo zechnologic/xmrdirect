@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import Layout from "../components/Layout";
 import { formatPaymentMethod } from "../utils/formatPaymentMethod";
+import { API_BASE_URL } from "../config/api";
 
 interface User {
   id: string;
@@ -73,17 +74,17 @@ function Account() {
 
       // Fetch user's multisig sessions, trades, and offers
       Promise.all([
-        fetch("http://localhost:3000/multisig", {
+        fetch(`${API_BASE_URL}/multisig`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch("http://localhost:3000/my-trades", {
+        fetch(`${API_BASE_URL}/my-trades`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch("http://localhost:3000/my-offers", {
+        fetch(`${API_BASE_URL}/my-offers`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -124,7 +125,7 @@ function Account() {
 
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:3000/offers/${offerId}`, {
+      const response = await fetch(`${API_BASE_URL}/offers/${offerId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

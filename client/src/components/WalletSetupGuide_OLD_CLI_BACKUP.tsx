@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE_URL } from "../config/api";
 
 interface WalletSetupGuideProps {
   tradeId: string;
@@ -46,7 +47,7 @@ function WalletSetupGuide({
 
     try {
       const response = await fetch(
-        `http://localhost:3000/multisig/${sessionId}/prepare`,
+        `${API_BASE_URL}/multisig/${sessionId}/prepare`,
         {
           method: "POST",
           headers: {
@@ -87,7 +88,7 @@ function WalletSetupGuide({
 
     try {
       const response = await fetch(
-        `http://localhost:3000/multisig/${sessionId}/make`,
+        `${API_BASE_URL}/multisig/${sessionId}/make`,
         {
           method: "POST",
           headers: {
@@ -128,7 +129,7 @@ function WalletSetupGuide({
 
     try {
       const response = await fetch(
-        `http://localhost:3000/multisig/${sessionId}/exchange`,
+        `${API_BASE_URL}/multisig/${sessionId}/exchange`,
         {
           method: "POST",
           headers: {
@@ -161,7 +162,7 @@ function WalletSetupGuide({
   const fetchServiceHex = async (type: "prepared" | "made" | "exchange") => {
     try {
       const response = await fetch(
-        `http://localhost:3000/trades/${tradeId}/service-${type}-hex`,
+        `${API_BASE_URL}/trades/${tradeId}/service-${type}-hex`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

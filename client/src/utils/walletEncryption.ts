@@ -5,6 +5,8 @@
  * Password NEVER sent to server - all encryption happens in browser
  */
 
+import { API_BASE_URL } from "../config/api";
+
 export interface EncryptedWallet {
   encrypted: string; // Base64 encrypted data
   iv: string; // Base64 initialization vector
@@ -319,7 +321,7 @@ export async function storeEncryptedWalletWithSync(
     localStorage.setItem(storageKey, JSON.stringify(encrypted));
 
     // Sync to server
-    const response = await fetch("http://localhost:3000/wallet", {
+    const response = await fetch(`${API_BASE_URL}/wallet`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -356,7 +358,7 @@ export async function retrieveEncryptedWalletWithSync(
 ): Promise<any | null> {
   try {
     // Try server first
-    const response = await fetch("http://localhost:3000/wallet", {
+    const response = await fetch(`${API_BASE_URL}/wallet`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -406,7 +408,7 @@ export async function retrieveEncryptedWalletWithSync(
 export async function hasWalletAnywhere(userId: string, token: string): Promise<boolean> {
   try {
     // Check server first
-    const response = await fetch("http://localhost:3000/wallet", {
+    const response = await fetch(`${API_BASE_URL}/wallet`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

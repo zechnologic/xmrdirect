@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { useMoneroWallet } from "../hooks/useMoneroWallet";
 import WalletPasswordModal from "./WalletPasswordModal";
 import SeedPhraseBackup from "./SeedPhraseBackup";
+import { API_BASE_URL } from "../config/api";
 
 interface WalletSetupGuideProps {
   tradeId: string;
@@ -119,7 +120,7 @@ export default function WalletSetupGuide({
 
       // 4. Submit PUBLIC coordination data to server
       const response = await fetch(
-        `http://localhost:3000/multisig/${sessionId}/prepare`,
+        `${API_BASE_URL}/multisig/${sessionId}/prepare`,
         {
           method: "POST",
           headers: {
@@ -165,7 +166,7 @@ export default function WalletSetupGuide({
     try {
       // 1. Get other participants' prepared hexes from server
       const response = await fetch(
-        `http://localhost:3000/multisig/${sessionId}`,
+        `${API_BASE_URL}/multisig/${sessionId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -229,7 +230,7 @@ export default function WalletSetupGuide({
 
       // 3. Submit made hex to server
       const makeResponse = await fetch(
-        `http://localhost:3000/multisig/${sessionId}/make`,
+        `${API_BASE_URL}/multisig/${sessionId}/make`,
         {
           method: "POST",
           headers: {
@@ -281,7 +282,7 @@ export default function WalletSetupGuide({
 
       // 1. Get session info to determine which round we're on
       const response = await fetch(
-        `http://localhost:3000/multisig/${sessionId}`,
+        `${API_BASE_URL}/multisig/${sessionId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -343,7 +344,7 @@ export default function WalletSetupGuide({
 
       // 4. Submit exchange hex (may be empty if complete)
       const exchangeResponse = await fetch(
-        `http://localhost:3000/multisig/${sessionId}/exchange`,
+        `${API_BASE_URL}/multisig/${sessionId}/exchange`,
         {
           method: "POST",
           headers: {

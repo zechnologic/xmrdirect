@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router";
 import Layout from "../components/Layout";
 import WalletSetupGuide from "../components/WalletSetupGuide";
 import { formatPaymentMethod } from "../utils/formatPaymentMethod";
+import { API_BASE_URL } from "../config/api";
 
 interface MultisigSession {
   id: string;
@@ -97,7 +98,7 @@ function TradeDetail() {
 
   const fetchTrade = async (tradeId: string, token: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/trades/${tradeId}`, {
+      const response = await fetch(`${API_BASE_URL}/trades/${tradeId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -135,7 +136,7 @@ function TradeDetail() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/trades/${id}/check-deposit`, {
+      const response = await fetch(`${API_BASE_URL}/trades/${id}/check-deposit`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -174,7 +175,7 @@ function TradeDetail() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/trades/${id}/mark-payment-sent`, {
+      const response = await fetch(`${API_BASE_URL}/trades/${id}/mark-payment-sent`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -221,7 +222,7 @@ function TradeDetail() {
       if (!token) throw new Error("Not authenticated");
 
       // Step 1: Initiate release (server creates unsigned transaction)
-      const initiateResponse = await fetch(`http://localhost:3000/trades/${id}/initiate-release`, {
+      const initiateResponse = await fetch(`${API_BASE_URL}/trades/${id}/initiate-release`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -247,7 +248,7 @@ function TradeDetail() {
       setActionMessage("Step 2/2: Finalizing release...");
 
       // Step 3: Finalize release (server co-signs and broadcasts)
-      const finalizeResponse = await fetch(`http://localhost:3000/trades/${id}/finalize-release`, {
+      const finalizeResponse = await fetch(`${API_BASE_URL}/trades/${id}/finalize-release`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -287,7 +288,7 @@ function TradeDetail() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/trades/${id}/dispute`, {
+      const response = await fetch(`${API_BASE_URL}/trades/${id}/dispute`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router";
 import Layout from "../components/Layout";
 import { formatPaymentMethod } from "../utils/formatPaymentMethod";
+import { API_BASE_URL } from "../config/api";
 
 interface Offer {
   id: string;
@@ -55,7 +56,7 @@ function Offers() {
         params.append("paymentMethodCode", filterPaymentMethod);
       }
 
-      const url = `http://localhost:3000/offers${
+      const url = `${API_BASE_URL}/offers${
         params.toString() ? `?${params.toString()}` : ""
       }`;
       const response = await fetch(url);

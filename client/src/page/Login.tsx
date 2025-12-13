@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import Layout from "../components/Layout";
+import { API_BASE_URL } from "../config/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/login", {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

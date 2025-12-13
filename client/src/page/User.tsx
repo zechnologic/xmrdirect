@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
 import Layout from "../components/Layout";
 import { formatPaymentMethod } from "../utils/formatPaymentMethod";
+import { API_BASE_URL } from "../config/api";
 
 interface Offer {
   id: string;
@@ -49,7 +50,7 @@ function User() {
 
   const fetchUserProfile = async (username: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/user/${username}`);
+      const response = await fetch(`${API_BASE_URL}/user/${username}`);
       const data = await response.json();
 
       if (data.success) {

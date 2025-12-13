@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router";
 import Layout from "../components/Layout";
+import { API_BASE_URL } from "../config/api";
 
 function CreateOffer() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ function CreateOffer() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/offers", {
+      const response = await fetch(`${API_BASE_URL}/offers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
