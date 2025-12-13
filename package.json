@@ -10,7 +10,7 @@
     "build:server": "tsc",
     "build:client": "cd client && npm run build",
     "clean": "rm -rf server/dist client/dist",
-    "dev": "npm run clean && npm run build:client && npm run start",
+    "dev": "npm run clean && npm run build:server && npm run build:client && npm run start",
     "start": "node server/dist/index.js"
   },
   "keywords": [],
